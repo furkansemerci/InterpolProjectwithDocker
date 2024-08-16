@@ -1,0 +1,40 @@
+version: '3.8'
+
+services:
+  rabbitmq:
+    build: ./rabbitmq
+    image: rabbitmq:3-management
+    ports:
+      - "5672:5672"  # RabbitMQ AMQP port
+      - "15672:15672"  # RabbitMQ management UI port
+    environment:
+      RABBITMQ_DEFAULT_USER: guest
+      RABBITMQ_DEFAULT_PASS: guest
+
+  selenium:
+    image: seleniarm/standalone-firefox:latest #selenium'u seleniarm olarak çalıştırmak
+    ports:
+      - "4444:4444"  # Selenium WebDriver port
+    shm_size: 2g
+
+
+  data_fetcher:
+    build: ./data_fetcher
+    environment:
+      - RABBITMQ_HOST=rabbitmq
+      - RABBITMQ_QUEUE=interpol_notices
+      - SELENIUM_HOST=selenium
+      - SELENIUM_PORT=4444 
+      - SELENIUM_SERVER_URL=http://selenium:4444/wd/hub
+    depends_on:
+      - rabbitmq
+      - selenium
+    networks:
+      - default
+
+  web_server:
+    build: ./web_server
+    ports:
+      - "8000:8000" 
+    depends_on:
+      - rabbitmq
