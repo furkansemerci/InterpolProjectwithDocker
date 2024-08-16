@@ -19,9 +19,9 @@ def fetch_red_notices():
         options=firefox_options
     )
 
-    unique_set = set() #set of unique ids
-    red_notice_list = [] #notices list
-    MAX_NOTICE = 20 # API sayfasında bulunacak maximum notice sayısı
+    unique_set = set()          #set of unique ids
+    red_notice_list = []        #notices list
+    MAX_NOTICE = 20             # API sayfasında bulunacak maximum notice sayısı
 
 ##########################################
     def data_proc(notice):             #Bir bildirimi notice_list listesine ekleyen yardımcı bir fonksiyon.
@@ -31,22 +31,22 @@ def fetch_red_notices():
 ##########################################
 # PARSING
     def proc_noti(url):
-
+        print("Processing notices...")
         driver.get(url)
-        page_source = driver.page_source
+        page_source = driver.page_source #html format
         json_start = page_source.find('{')
         json_end = page_source.rfind('}') + 1
-        json_text = page_source[json_start:json_end]
+        json_text = page_source[json_start:json_end] # remove middle
         try:
             data = json.loads(json_text)
             total = int(data['total'])
 
             if total == 0:
                 print(f"No data for URL: {url}")  
-                return 0   #Hiç bildirim bulunamazsa (total == 0), bir mesaj yazdırılır ve fonksiyon 0 döner.
+                return 0   #Hiç bildirim bulunamazsa (total == 0)fonksiyon 0 döner.
 
             notices = data['_embedded']['notices']
-            for notice in notices: ######### Eğer entity_id notice_list içinde yoksa onu kaydeder
+            for notice in notices:              ######### Eğer entity_id notice_list içinde yoksa onu kaydeder
                 entity_id = notice['entity_id']
                 if entity_id not in unique_set:
                     unique_set.add(entity_id)

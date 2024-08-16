@@ -15,7 +15,8 @@ app = Flask(__name__)
 DATABASE = 'red_notices.db'
 
 def init_db():    ### Database initialize eder. entity_id alanı, her bildirimi tanımlayan birincil anahtar olarak tanımlanmıştır.
-    with sqlite3.connect(DATABASE) as conn:
+    print("Initialiazing database...")
+    with sqlite3.connect(DATABASE) as conn: # conn = sqlite3.connect(DATABASE)
         cursor = conn.cursor() #conn --> connection 
         cursor.execute('''
             CREATE TABLE IF NOT EXISTS notices (
@@ -62,6 +63,7 @@ def save_notice_to_db(notice):
 ###########################################################
 
 def consume_from_queue():
+    print("Consuming...")
     connection = pika.BlockingConnection(pika.ConnectionParameters(host='host.docker.internal'))
     channel = connection.channel()
     channel.queue_declare(queue='interpol_notices', durable=True)
@@ -71,7 +73,7 @@ def consume_from_queue():
         for notice in notice_dict['notices']:
             save_notice_to_db(notice)
 
-    channel.basic_consume(queue='interpol_notices', on_message_callback=callback, auto_ack=True)
+    channel.basic_consume(queue='interpol_notices', on_message_callback=callback, auto_ack=True) #auto_ack = auto approve
     channel.start_consuming()
 #############################################################
 
@@ -94,23 +96,17 @@ def index():
 ########################################
 @app.route('/search') #search fonksiyonunu göster
 def search():
-    query = request.args.get('q', '').strip().lower() #searchden alına queryi databaseden alma
-    print(f"Search Query Received: '{query}'")
+    query = request.args.get('q', '').strip().lower() #searchden alına queryi databaseden alma q= query 
     conn = get_db() #database connection
     cur = conn.cursor() #cursor 
     cur.execute("SELECT * FROM notices WHERE LOWER(name) LIKE ?", ('%' + query + '%',)) #cursor soyadı bul 
     notices = cur.fetchall() #cursor bulunca hepsini al
-    print(f"Notices Found: {len(notices)}")
     conn.close()
     return render_template('search_results.html', notices=notices, query=query)
 
 ########################################
-if __name__ == '__main__':
+if __name__ == '__main__': #dosya doğrudan çalıştırıldığında çalıştırılır
     init_db()
     threading.Thread(target=consume_from_queue).start()
     app.run(host='0.0.0.0', port=8000, debug=True) # Flask server'ını 8000 portunda çalıştırır
-
-
-
-
 
