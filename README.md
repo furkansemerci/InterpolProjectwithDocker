@@ -62,7 +62,7 @@ Proje çalıştırılmadan önce aşağıdaki yazılımların kurulu olduğundan
 1. **Depoyu Klonlayın**
 
 2. **Aşağıdaki docker komutu ile kodu çalıştırın**
-    - docker-compose up --build
+    - `docker-compose up --build`
 
 3. **Proje Servisleri**
     - __RabbitMQ__: RabbitMQ kuyruğunu oluşturur ve mesaj alışverişini yönetir.
